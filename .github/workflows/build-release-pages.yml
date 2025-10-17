@@ -1,10 +1,10 @@
-name: Build, Release and Deploy to Pages
+name: Build and Release Frontend
 
 on:
   push:
     tags:
-      - 'v*'                # 远端 push tag（例如 v1.0.0）会触发
-  workflow_dispatch:       # 手动触发
+      - 'v*'                # 推送 v 开头的 tag 时触发，例如 v1.0.0
+  workflow_dispatch:        # 支持手动触发
     inputs:
       tag:
         description: 'Release tag (e.g. v1.0.0)'
@@ -12,34 +12,30 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # 计算最终要用的 tag：如果是 workflow_dispatch 用 inputs.tag，否则用 github.ref_name（push tag 时的 tag）
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
     steps:
-      - name: Checkout code (fetch all history & tags)
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0        # 必须，确保能看到 tag 与完整历史
+          fetch-depth: 0    # 确保能读取 tags
 
-      - name: Ensure tag exists (when manually triggered)
+      - name: Ensure tag exists (for manual trigger)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           echo "Release tag = $RELEASE_TAG"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 若远端不存在该 tag，就在 runner 上创建并推送
           if ! git ls-remote --tags origin | grep -q "refs/tags/${{ github.event.inputs.tag }}$"; then
-            git tag -a "${{ github.event.inputs.tag }}" -m "tag created by workflow_dispatch"
+            git tag -a "${{ github.event.inputs.tag }}" -m "Created by workflow_dispatch"
             git push origin "${{ github.event.inputs.tag }}"
-            echo "Tag pushed to origin: $RELEASE_TAG"
+            echo "✅ Tag pushed to origin: $RELEASE_TAG"
           else
-            echo "Tag already exists on origin: $RELEASE_TAG"
+            echo "ℹ️ Tag already exists on origin: $RELEASE_TAG"
           fi
 
       - name: Set up Node.js
@@ -54,15 +50,10 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Archive build files
+      - name: Package build files
         run: |
           cd dist
           zip -r ../mini-supermarket-frontend-lite-${RELEASE_TAG}.zip .
-
-      - name: Upload artifact for Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
 
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
@@ -73,13 +64,3 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: github-pages
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
