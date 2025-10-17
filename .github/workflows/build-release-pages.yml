@@ -1,13 +1,13 @@
-name: Build, Release, then Deploy to Pages (Vue3 + Vite)
+name: Build, Release, then Deploy to Pages
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v1.0.0)'
+        description: "Release tag (e.g. v1.0.0)"
         required: true
 
 permissions:
@@ -27,38 +27,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: package-lock.json
+          cache: "npm"
 
       - name: Determine release tag
         id: set_tag
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             if [ -z "${{ github.event.inputs.tag }}" ]; then
               echo "Release tag input is required for workflow_dispatch" >&2
               exit 1
             fi
             echo "release_tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
-            if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-              echo "release_tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-            else
-              echo "This workflow must be triggered by a tag push (v*) or workflow_dispatch with tag" >&2
-              exit 1
-            fi
+            case "$GITHUB_REF" in
+              refs/tags/*) echo "release_tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT" ;;
+              *) echo "This workflow must be triggered by a tag push (v*) or workflow_dispatch with tag" >&2; exit 1 ;;
+            esac
           fi
-          echo "Release tag = $(grep release_tag "$GITHUB_OUTPUT" | cut -d= -f2-)"
+          echo "Using release tag: $(grep '^release_tag=' "$GITHUB_OUTPUT" | cut -d= -f2-)"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build (Vite)
         run: npm run build
 
       - name: Configure Pages
@@ -68,7 +68,7 @@ jobs:
         shell: bash
         run: |
           cd dist
-          zip -r ../mini-supermarket-frontend-lite-${{ steps.set_tag.outputs.release_tag }}.zip .
+          zip -r "../mini-supermarket-frontend-lite-${{ steps.set_tag.outputs.release_tag }}.zip" .
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
@@ -90,7 +90,6 @@ jobs:
     needs: build_release
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deploy
