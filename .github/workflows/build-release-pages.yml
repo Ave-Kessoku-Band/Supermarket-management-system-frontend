@@ -3,7 +3,7 @@ name: Build, Release and Deploy to Pages
 on:
   push:
     tags:
-      - 'v*'                # 远端 push tag（例如 v1.0.0）会触发
+      - 'v*'                # 推送 tag（例如 v1.0.0）触发
   workflow_dispatch:       # 手动触发
     inputs:
       tag:
@@ -19,13 +19,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # 计算最终要用的 tag：如果是 workflow_dispatch 用 inputs.tag，否则用 github.ref_name（push tag 时的 tag）
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+      # 计算最终要用的 tag
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) }}
     steps:
       - name: Checkout code (fetch all history & tags)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0        # 必须，确保能看到 tag 与完整历史
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Ensure tag exists (when manually triggered)
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -33,10 +34,9 @@ jobs:
           echo "Release tag = $RELEASE_TAG"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 若远端不存在该 tag，就在 runner 上创建并推送
-          if ! git ls-remote --tags origin | grep -q "refs/tags/${{ github.event.inputs.tag }}$"; then
-            git tag -a "${{ github.event.inputs.tag }}" -m "tag created by workflow_dispatch"
-            git push origin "${{ github.event.inputs.tag }}"
+          if ! git ls-remote --tags origin | grep -q "refs/tags/${RELEASE_TAG}$"; then
+            git tag -a "${RELEASE_TAG}" -m "tag created by workflow_dispatch"
+            git push origin "${RELEASE_TAG}"
             echo "Tag pushed to origin: $RELEASE_TAG"
           else
             echo "Tag already exists on origin: $RELEASE_TAG"
@@ -45,7 +45,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20   # 推荐 LTS 版本
           cache: 'npm'
 
       - name: Install dependencies
@@ -57,7 +57,7 @@ jobs:
       - name: Archive build files
         run: |
           cd dist
-          zip -r ../mini-supermarket-frontend-lite-${RELEASE_TAG}.zip .
+          zip -r ../mini-supermarket-frontend-lite-${{ env.RELEASE_TAG }}.zip .
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
@@ -81,5 +81,10 @@ jobs:
       name: github-pages
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
+        id: deploy
         uses: actions/deploy-pages@v4
+        with:
+          path: dist
+
+      - name: Show GitHub Pages URL
+        run: echo "🎉 Pages URL: ${{ steps.deploy.outputs.page_url }}"
