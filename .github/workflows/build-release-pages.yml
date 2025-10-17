@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'                # 推送 tag（例如 v1.0.0）触发
-  workflow_dispatch:       # 手动触发
+  workflow_dispatch:
     inputs:
       tag:
         description: 'Release tag (e.g. v1.0.0)'
@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # 计算最终要用的 tag
+      # RELEASE_TAG：手动触发用输入 tag，push tag 用 github.ref_name
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) }}
     steps:
       - name: Checkout code (fetch all history & tags)
@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Ensure tag exists (when manually triggered)
+      - name: Ensure tag exists (workflow_dispatch only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           echo "Release tag = $RELEASE_TAG"
@@ -45,7 +45,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20   # 推荐 LTS 版本
+          node-version: 20   # LTS 更稳定
           cache: 'npm'
 
       - name: Install dependencies
@@ -87,4 +87,4 @@ jobs:
           path: dist
 
       - name: Show GitHub Pages URL
-        run: echo "🎉 Pages URL: ${{ steps.deploy.outputs.page_url }}"
+        run: echo "Pages URL: ${{ steps.deploy.outputs.page_url }}"
