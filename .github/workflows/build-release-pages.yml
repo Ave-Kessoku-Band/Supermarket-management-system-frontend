@@ -3,20 +3,44 @@ name: Build, Release and Deploy to Pages
 on:
   push:
     tags:
-      - 'v*'  # 当推送形如 v1.0.0 的标签时触发
-  workflow_dispatch:  # 允许手动运行
+      - 'v*'                # 远端 push tag（例如 v1.0.0）会触发
+  workflow_dispatch:       # 手动触发
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
 
 permissions:
-  contents: write   # 允许创建 Release
-  pages: write      # 允许部署到 GitHub Pages
-  id-token: write   # 用于 Pages 部署认证
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # 计算最终要用的 tag：如果是 workflow_dispatch 用 inputs.tag，否则用 github.ref_name（push tag 时的 tag）
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
     steps:
-      - name: Checkout code
+      - name: Checkout code (fetch all history & tags)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # 必须，确保能看到 tag 与完整历史
+
+      - name: Ensure tag exists (when manually triggered)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "Release tag = $RELEASE_TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 若远端不存在该 tag，就在 runner 上创建并推送
+          if ! git ls-remote --tags origin | grep -q "refs/tags/${{ github.event.inputs.tag }}$"; then
+            git tag -a "${{ github.event.inputs.tag }}" -m "tag created by workflow_dispatch"
+            git push origin "${{ github.event.inputs.tag }}"
+            echo "Tag pushed to origin: $RELEASE_TAG"
+          else
+            echo "Tag already exists on origin: $RELEASE_TAG"
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,17 +57,19 @@ jobs:
       - name: Archive build files
         run: |
           cd dist
-          zip -r ../mini-supermarket-frontend-lite.zip .
+          zip -r ../mini-supermarket-frontend-lite-${RELEASE_TAG}.zip .
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
-      - name: Create GitHub Release
+      - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: mini-supermarket-frontend-lite.zip
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.RELEASE_TAG }}
+          files: mini-supermarket-frontend-lite-${{ env.RELEASE_TAG }}.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,7 +79,6 @@ jobs:
     needs: build
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
