@@ -15,6 +15,11 @@ permissions:
   pages: write
   id-token: write
 
+# 避免同一 ref 的部署互相覆盖
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,11 +32,19 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          persist-credentials: true  # 推送 tag 需要凭据
+
+      - name: Validate RELEASE_TAG
+        run: |
+          if [ -z "${RELEASE_TAG}" ]; then
+            echo "RELEASE_TAG is empty. Trigger this workflow via tag push (v*) or provide 'tag' input in workflow_dispatch."
+            exit 1
+          fi
+          echo "Release tag = ${RELEASE_TAG}"
 
       - name: Ensure tag exists (workflow_dispatch only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          echo "Release tag = $RELEASE_TAG"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git ls-remote --tags origin | grep -q "refs/tags/${RELEASE_TAG}$"; then
@@ -47,6 +60,7 @@ jobs:
         with:
           node-version: 20   # LTS 更稳定
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -54,15 +68,21 @@ jobs:
       - name: Build project
         run: npm run build
 
+      # 配置 Pages（设置默认静态网站配置）
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Archive build files
         run: |
           cd dist
           zip -r ../mini-supermarket-frontend-lite-${{ env.RELEASE_TAG }}.zip .
 
+      # 为 Pages 部署上传工件。deploy 作业会自动取用此工件
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          # artifact_name: github-pages # 可选，默认即为 github-pages
 
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
@@ -83,8 +103,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
-        with:
-          path: dist
+        # 不要传 path；该 Action 会自动部署上一步上传的 Pages 工件
 
       - name: Show GitHub Pages URL
         run: echo "Pages URL: ${{ steps.deploy.outputs.page_url }}"
