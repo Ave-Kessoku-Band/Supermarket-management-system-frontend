@@ -1,13 +1,13 @@
-name: Build, Release and Deploy to Pages
+name: Build, Release, Deploy to Pages
 
 on:
   push:
     tags:
-      - 'v*'                # 推送 tag（例如 v1.0.0）触发
-  workflow_dispatch:       # 手动触发
+      - "v*"
+  workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v1.0.0)'
+        description: "Release tag (e.g. v1.0.0)"
         required: true
 
 permissions:
@@ -15,49 +15,63 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  build_release:
     runs-on: ubuntu-latest
-    env:
-      # 计算最终要用的 tag
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) }}
     steps:
-      - name: Checkout code (fetch all history & tags)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
+          persist-credentials: true
 
-      - name: Ensure tag exists (when manually triggered)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set release tag
+        id: set_tag
+        shell: bash
         run: |
-          echo "Release tag = $RELEASE_TAG"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ github.event.inputs.tag }}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          fi
+          echo "Release tag = ${RELEASE_TAG}"
+
+      - name: Ensure tag exists (workflow_dispatch only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git ls-remote --tags origin | grep -q "refs/tags/${RELEASE_TAG}$"; then
             git tag -a "${RELEASE_TAG}" -m "tag created by workflow_dispatch"
             git push origin "${RELEASE_TAG}"
-            echo "Tag pushed to origin: $RELEASE_TAG"
-          else
-            echo "Tag already exists on origin: $RELEASE_TAG"
           fi
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20   # 推荐 LTS 版本
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build project
+      - name: Build (Vite)
         run: npm run build
 
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Archive build files
+        shell: bash
         run: |
           cd dist
-          zip -r ../mini-supermarket-frontend-lite-${{ env.RELEASE_TAG }}.zip .
+          zip -r "../mini-supermarket-frontend-lite-${RELEASE_TAG}.zip" .
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
@@ -76,15 +90,9 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build_release
     environment:
       name: github-pages
     steps:
       - name: Deploy to GitHub Pages
-        id: deploy
         uses: actions/deploy-pages@v4
-        with:
-          path: dist
-
-      - name: Show GitHub Pages URL
-        run: echo "🎉 Pages URL: ${{ steps.deploy.outputs.page_url }}"
