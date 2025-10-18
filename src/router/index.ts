@@ -29,7 +29,9 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.public) return true
   if (!auth.isAuthenticated) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+    // 用 sessionStorage 暂存目标路径，避免 URL 出现 ?redirect=
+    sessionStorage.setItem('redirect:path', to.fullPath)
+    return { name: 'login' }
   }
   const roles = (to.meta.roles as string[] | undefined) ?? []
   if (roles.length && !roles.includes(auth.user?.role ?? '')) {

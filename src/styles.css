@@ -1,4 +1,96 @@
-* { box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif; color:#222; }
-input, select, button { font-size:14px; }
-h3 { margin: 6px 0 10px; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 壁纸背景（Bing 4K） */
+:root {
+  --bing-wallpaper: url('https://bing.img.run/uhd.php');
+}
+html, body, #app { height: 100%; }
+body {
+  background-image: var(--bing-wallpaper);
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Apple 风格液态玻璃：半透明 + 高斯模糊 + 顶端高光 + 细白描边（克制） */
+.glass-ios {
+  position: relative;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* 更强一点的材质（用于侧栏/顶栏） */
+.glass-ios-strong {
+  position: relative;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.32);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.10);
+}
+
+/* 顶部柔和高光，仅占上部 48px，避免影响内容 */
+.glass-ios::before,
+.glass-ios-strong::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 1px;
+  height: 48px;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+/* 细白描边（内描边感） */
+.glass-ios::after,
+.glass-ios-strong::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.35);
+  pointer-events: none;
+}
+
+/* 常用组件 */
+.card { @apply p-3; }
+.card { composes: glass-ios; } /* 若编辑器不支持 composes，可在模板直接加 glass-ios */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table th, .table td {
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.btn {
+  @apply inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm;
+  background: rgba(255,255,255,0.78);
+  border-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+.btn:hover { background: rgba(255,255,255,0.86); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { @apply text-white; background: #2563eb; border-color: #2563eb; }
+.btn-primary:hover { background: #1d4ed8; }
