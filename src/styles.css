@@ -19,11 +19,15 @@ body {
     radial-gradient(900px 700px at 90% 0%, rgba(16,185,129,0.08), transparent 60%),
     linear-gradient(#ffffff, #f8fafc);
   color: var(--fg);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: 'wenfeng-misa', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+button, input, select, textarea {
+  font: inherit;
+}
 
 .app-bg {
   min-height: 100%;

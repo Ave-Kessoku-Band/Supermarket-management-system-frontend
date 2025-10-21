@@ -42,11 +42,11 @@ import ProductCard from '@/components/ProductCard.vue'
 import Pagination from '@/components/Pagination.vue'
 import { useAuthStore } from '@/store/auth'
 import { useCartStore } from '@/store/cart'
-import { useRouter } from 'vue-router'
+import { useUiStore } from '@/store/ui'
 
 const auth = useAuthStore()
 const cart = useCartStore()
-const router = useRouter()
+const ui = useUiStore()
 
 const search = ref('')
 const stockStatus = ref<string>('')
@@ -74,12 +74,12 @@ const fetch = async () => {
 }
 
 watch(page, fetch)
-
 onMounted(fetch)
 
 const onAddToCart = async (p: any) => {
   if (!auth.isAuthenticated) {
-    router.push({ name: 'login', query: { redirect: '/' } })
+    // 停留在首页，提示后跳登录（回跳到首页）
+    ui.promptLoginAndRedirect('/')
     return
   }
   try {

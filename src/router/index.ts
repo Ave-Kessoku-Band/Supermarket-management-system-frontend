@@ -1,10 +1,11 @@
-import {createRouter, createWebHashHistory, RouteRecordRaw} from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { useUiStore } from '@/store/ui'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'products', component: () => import('@/pages/Products.vue') },
 
-  // 登录 / 注册为独立页面，且隐藏导航栏
+  // 登录 / 注册为独立页面，隐藏导航栏
   { path: '/login', name: 'login', component: () => import('@/pages/Login.vue'), meta: { public: true, hideNav: true } },
   { path: '/register', name: 'register', component: () => import('@/pages/Register.vue'), meta: { public: true, hideNav: true } },
 
@@ -30,12 +31,13 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to, from) => {
   const auth = useAuthStore()
+
   if (!auth.initialized) {
     await auth.bootstrap()
   }
@@ -43,7 +45,14 @@ router.beforeEach(async (to) => {
   if (to.meta.public) return true
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+    // 初次直接打开受保护路由：正常重定向（避免初始导航空白）
+    if (!from.name) {
+      return { name: 'login', query: { redirect: to.fullPath } }
+    }
+    // 应用内点击：先提示，再延迟跳转
+    const ui = useUiStore()
+    ui.promptLoginAndRedirect(to.fullPath)
+    return false
   }
 
   const roles = (to.meta.roles as string[] | undefined) ?? []

@@ -4,8 +4,12 @@
 
     <nav style="display:flex;gap:10px;">
       <router-link to="/" class="btn" :class="{ active: isActive('/') }">商品</router-link>
-      <router-link to="/cart" class="btn">购物车<span v-if="cartCount > 0">（{{ cartCount }}）</span></router-link>
-      <router-link to="/orders" class="btn">订单</router-link>
+      <!-- 受保护导航：未登录先提示，1s 后跳登录 -->
+      <button class="btn" @click="goCart">
+        购物车<span v-if="cartCount > 0">（{{ cartCount }}）</span>
+      </button>
+      <button class="btn" @click="goOrders">订单</button>
+
       <div v-if="isStaffOrAdmin" style="display:flex;gap:10px;">
         <router-link to="/admin" class="btn">仪表盘</router-link>
       </div>
@@ -36,10 +40,12 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useCartStore } from '@/store/cart'
+import { useUiStore } from '@/store/ui'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const ui = useUiStore()
 const cart = useCartStore()
 
 const isActive = (path: string) => route.path === path
@@ -49,6 +55,22 @@ const isStaffOrAdmin = computed(() => auth.user?.role === 'staff' || auth.user?.
 const avatarUrl = '' // 可接入上传头像地址
 const initials = computed(() => (auth.user?.username?.[0] || 'U').toUpperCase())
 const menuOpen = ref(false)
+
+const goCart = () => {
+  if (!auth.isAuthenticated) {
+    ui.promptLoginAndRedirect('/cart')
+  } else {
+    router.push({ name: 'cart' })
+  }
+}
+
+const goOrders = () => {
+  if (!auth.isAuthenticated) {
+    ui.promptLoginAndRedirect('/orders')
+  } else {
+    router.push({ name: 'orders' })
+  }
+}
 
 const logout = async () => {
   await auth.logout()

@@ -6,6 +6,8 @@
         <router-view />
       </main>
     </div>
+    <!-- 全局提示 -->
+    <GlobalToast />
   </div>
 </template>
 
@@ -13,9 +15,9 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import NavBar from './components/NavBar.vue'
+import GlobalToast from './components/GlobalToast.vue'
 
 const route = useRoute()
-// 路由 meta.hideNav 为 true 时隐藏导航栏（用于 /login 与 /register）
 const showNav = computed(() => !route.meta.hideNav)
 </script>
 
