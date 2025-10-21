@@ -1,42 +1,56 @@
-import {createRouter, createWebHashHistory, createWebHistory, RouteRecordRaw} from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import {createRouter, createWebHashHistory, RouteRecordRaw} from 'vue-router'
+import { useAuthStore } from '@/store/auth'
 
 const routes: RouteRecordRaw[] = [
-  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true } },
+  { path: '/', name: 'products', component: () => import('@/pages/Products.vue') },
+
+  // 登录 / 注册为独立页面，且隐藏导航栏
+  { path: '/login', name: 'login', component: () => import('@/pages/Login.vue'), meta: { public: true, hideNav: true } },
+  { path: '/register', name: 'register', component: () => import('@/pages/Register.vue'), meta: { public: true, hideNav: true } },
+
+  { path: '/cart', name: 'cart', component: () => import('@/pages/Cart.vue'), meta: { requiresAuth: true, roles: ['member'] } },
+  { path: '/orders', name: 'orders', component: () => import('@/pages/Orders.vue'), meta: { requiresAuth: true } },
+  { path: '/orders/:id', name: 'order-detail', component: () => import('@/pages/OrderDetail.vue'), meta: { requiresAuth: true } },
+
   {
-    path: '/',
-    component: () => import('../layouts/MainLayout.vue'),
+    path: '/admin',
+    component: { render: () => null },
+    meta: { requiresAuth: true, roles: ['staff', 'admin'] },
     children: [
-      { path: '', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { roles: ['admin','cashier'] } },
-      { path: 'pos', name: 'pos', component: () => import('../views/pos/PosView.vue'), meta: { roles: ['admin','cashier'] } },
-      { path: 'products', name: 'products', component: () => import('../views/products/ProductList.vue'), meta: { roles: ['admin'] } },
-      { path: 'inventory/levels', name: 'inventory-levels', component: () => import('../views/inventory/InventoryLevels.vue'), meta: { roles: ['admin'] } },
-      { path: 'inventory/adjust', name: 'inventory-adjust', component: () => import('../views/inventory/InventoryAdjust.vue'), meta: { roles: ['admin'] } },
-      { path: 'reports/sales-summary', name: 'report-sales', component: () => import('../views/reports/SalesSummary.vue'), meta: { roles: ['admin'] } },
-      { path: 'registers', name: 'registers', component: () => import('../views/registers/RegistersAndShifts.vue'), meta: { roles: ['admin','cashier'] } },
-      { path: 'receipts/:receiptNo', name: 'receipt-detail', component: () => import('../views/receipts/ReceiptDetail.vue'), meta: { roles: ['admin','cashier'] } },
+      { path: '', name: 'admin-home', component: () => import('@/pages/admin/DashboardOverview.vue') },
+      { path: 'members', name: 'admin-members', component: () => import('@/pages/admin/Members.vue') },
+      { path: 'staff', name: 'admin-staff', component: () => import('@/pages/admin/Staff.vue') },
+      { path: 'inventory', name: 'admin-inventory', component: () => import('@/pages/admin/Inventory.vue') },
+      { path: 'orders', name: 'admin-orders', component: () => import('@/pages/admin/Orders.vue') }
     ]
   },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
+
+  { path: '/403', name: 'forbidden', component: () => import('@/pages/Forbidden.vue'), meta: { public: true } },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/pages/NotFound.vue'), meta: { public: true } }
 ]
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes,
+  routes
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
+  if (!auth.initialized) {
+    await auth.bootstrap()
+  }
+
   if (to.meta.public) return true
-  if (!auth.isAuthenticated) {
-    // 用 sessionStorage 暂存目标路径，避免 URL 出现 ?redirect=
-    sessionStorage.setItem('redirect:path', to.fullPath)
-    return { name: 'login' }
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
+
   const roles = (to.meta.roles as string[] | undefined) ?? []
-  if (roles.length && !roles.includes(auth.user?.role ?? '')) {
-    return { name: 'dashboard' }
+  if (roles.length && auth.user && !roles.includes(auth.user.role)) {
+    return { name: 'forbidden' }
   }
+
   return true
 })
 

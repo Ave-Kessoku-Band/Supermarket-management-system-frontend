@@ -1,96 +1,145 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* 壁纸背景（Bing 4K） */
-:root {
-  --bing-wallpaper: url('https://bing.img.run/uhd.php');
+:root{
+  /* 浅色主题变量 */
+  --bg: #f8fafc;           /* 页面基底 */
+  --fg: #1f2937;           /* 主文本（slate-800） */
+  --muted: #667085;        /* 次级文本 */
+  --accent: #3b82f6;       /* 主色（蓝） */
+  --glass-bg: rgba(255,255,255,0.65); /* 玻璃底色：白色半透明 */
+  --glass-border: rgba(16,24,40,0.08);/* 玻璃描边：浅灰 */
+  --shadow: rgba(15,23,42,0.08);      /* 柔和阴影 */
 }
+
+*{ box-sizing: border-box; }
 html, body, #app { height: 100%; }
 body {
-  background-image: var(--bing-wallpaper);
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
-  overflow-x: hidden;
+  margin: 0;
+  /* 浅色柔和背景（可根据喜好微调） */
+  background:
+    radial-gradient(1000px 800px at 10% 10%, rgba(59,130,246,0.10), transparent 60%),
+    radial-gradient(900px 700px at 90% 0%, rgba(16,185,129,0.08), transparent 60%),
+    linear-gradient(#ffffff, #f8fafc);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* Apple 风格液态玻璃：半透明 + 高斯模糊 + 顶端高光 + 细白描边（克制） */
-.glass-ios {
-  position: relative;
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.app-bg {
+  min-height: 100%;
+  /* 顶部一点点色彩流动的高光 */
+  background:
+    radial-gradient(600px 300px at 80% -10%, rgba(59,130,246,0.12), transparent 60%),
+    radial-gradient(600px 300px at 10% 0%, rgba(16,185,129,0.10), transparent 60%);
+}
+
+/* 玻璃拟态容器：白色基底、轻描边、柔和阴影与模糊 */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px var(--shadow);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+.navbar {
+  position: sticky;
+  top: 8px; /* 上边沿留缝 */
+  z-index: 50;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-/* 更强一点的材质（用于侧栏/顶栏） */
-.glass-ios-strong {
-  position: relative;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.32);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.10);
-}
+.nav-spacer { flex: 1; }
 
-/* 顶部柔和高光，仅占上部 48px，避免影响内容 */
-.glass-ios::before,
-.glass-ios-strong::before {
-  content: "";
-  position: absolute;
-  left: 1px;
-  right: 1px;
-  top: 1px;
-  height: 48px;
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
-  pointer-events: none;
-}
-
-/* 细白描边（内描边感） */
-.glass-ios::after,
-.glass-ios-strong::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.35);
-  pointer-events: none;
-}
-
-/* 常用组件 */
-.card { @apply p-3; }
-.card { composes: glass-ios; } /* 若编辑器不支持 composes，可在模板直接加 glass-ios */
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(8px) saturate(140%);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.table th, .table td {
-  border: 1px solid rgba(255,255,255,0.35);
-  padding: 8px 10px;
-  text-align: left;
-}
-
+/* 轻量按钮：浅色背景 + 细描边 */
 .btn {
-  @apply inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm;
-  background: rgba(255,255,255,0.78);
-  border-color: rgba(255,255,255,0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75));
+  border: 1px solid rgba(16,24,40,0.12);
+  color: var(--fg);
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: box-shadow .15s ease, transform .02s ease, background .15s ease, border-color .15s ease;
 }
-.btn:hover { background: rgba(255,255,255,0.86); }
+.btn:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,0.85));
+  border-color: rgba(16,24,40,0.18);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.08);
+}
 .btn:active { transform: translateY(1px); }
-.btn-primary { @apply text-white; background: #2563eb; border-color: #2563eb; }
-.btn-primary:hover { background: #1d4ed8; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* 输入与下拉：白色半透明底 + 浅描边 */
+.input, select {
+  width: 100%;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(16,24,40,0.12);
+  color: var(--fg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.input::placeholder { color: #98a2b3; }
+.input:focus, select:focus {
+  border-color: rgba(59,130,246,0.45);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  background: rgba(255,255,255,0.98);
+}
+
+.card {
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.section-title {
+  font-size: 20px; font-weight: 600; margin: 12px 0;
+}
+
+.small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+hr.hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(16,24,40,0.15), transparent);
+  margin: 10px 0;
+}
+
+/* 头像按钮在浅色下的适配 */
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(16,24,40,0.12);
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-fallback { color: var(--fg); font-weight: 700; }
+
+/* 产品图底板在浅色下更柔和 */
+.thumb {
+  width: 100%;
+  padding-top: 62%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  border: 1px solid rgba(16,24,40,0.10);
+}
+
+/* 活动态的按钮高亮描边（浅色） */
+.btn.active { outline: 2px solid rgba(59,130,246,0.25); }
