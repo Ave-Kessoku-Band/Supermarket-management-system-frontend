@@ -1,17 +1,5 @@
 <template>
   <div class="products-page">
-    <!-- Floating Filter Button -->
-    <v-btn
-      class="filter-fab"
-      color="primary"
-      icon
-      size="large"
-      elevation="8"
-      @click="filterDialog = true"
-    >
-      <v-icon>mdi-filter-variant</v-icon>
-    </v-btn>
-
     <!-- Filter Dialog -->
     <v-dialog v-model="filterDialog" max-width="500">
       <v-card class="glass-dialog">
@@ -184,6 +172,11 @@ const handleNavbarSearch = (e: CustomEvent) => {
   fetch()
 }
 
+// 监听导航栏筛选事件
+const handleNavbarFilter = () => {
+  filterDialog.value = true
+}
+
 // 监听URL查询参数
 watch(() => route.query.search, (newSearch) => {
   if (newSearch && typeof newSearch === 'string') {
@@ -202,6 +195,7 @@ onMounted(() => {
   }
   // 添加事件监听
   window.addEventListener('navbar-search', handleNavbarSearch as EventListener)
+  window.addEventListener('navbar-filter', handleNavbarFilter as EventListener)
 })
 </script>
 
@@ -228,21 +222,6 @@ onMounted(() => {
     transparent 100%);
   z-index: -1;
   pointer-events: none;
-}
-
-/* Floating Filter Button */
-.filter-fab {
-  position: fixed;
-  top: 88px;
-  right: 24px;
-  z-index: 100;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.filter-fab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4) !important;
 }
 
 /* Glass Dialog */

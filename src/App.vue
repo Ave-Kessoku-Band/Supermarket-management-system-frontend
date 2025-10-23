@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <NavBar v-if="showNav" />
+      <NavBar v-if="showNav" @open-filter="handleOpenFilter" />
       <v-container fluid class="pa-4">
         <router-view />
       </v-container>
@@ -19,6 +19,10 @@ import GlobalToast from './components/GlobalToast.vue'
 
 const route = useRoute()
 const showNav = computed(() => !route.meta.hideNav)
+
+const handleOpenFilter = () => {
+  window.dispatchEvent(new CustomEvent('navbar-filter'))
+}
 </script>
 
 <style scoped>

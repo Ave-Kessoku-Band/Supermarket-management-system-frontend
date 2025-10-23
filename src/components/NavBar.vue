@@ -1,5 +1,15 @@
 <template>
   <v-app-bar color="surface" elevation="2" class="navbar">
+    <!-- Menu Button -->
+    <v-btn
+      icon
+      variant="text"
+      @click="drawerOpen = !drawerOpen"
+      class="mr-2"
+    >
+      <v-icon>mdi-menu</v-icon>
+    </v-btn>
+
     <!-- Brand Logo (点击标题返回主页) -->
     <v-app-bar-title>
       <router-link to="/" class="text-decoration-none text-primary">
@@ -7,109 +17,83 @@
       </router-link>
     </v-app-bar-title>
 
-    <!-- Left Navigation Items (仅保留员工/管理员的仪表盘) -->
-    <template v-if="$vuetify.display.mdAndUp">
-      <v-btn
-        v-if="isStaffOrAdmin"
-        variant="text"
-        :color="isActive('/admin') ? 'primary' : 'on-surface-variant'"
-        @click="$router.push('/admin')"
-        class="text-none"
-      >
-        <v-icon>mdi-view-dashboard-outline</v-icon>
-        <span class="ml-2">仪表盘</span>
-      </v-btn>
-    </template>
-
     <v-spacer></v-spacer>
 
-    <!-- Right Actions: Search, Cart & Orders -->
+    <!-- Right Actions: Search, Filter, Login -->
     <template v-if="$vuetify.display.mdAndUp">
       <v-btn
-        icon
         variant="text"
         color="on-surface-variant"
         @click="searchDialog = true"
+        class="text-none"
       >
         <v-icon>mdi-magnify</v-icon>
+        <span class="ml-2">搜索</span>
       </v-btn>
 
       <v-btn
         variant="text"
-        :color="isActive('/cart') ? 'primary' : 'on-surface-variant'"
-        @click="goCart"
+        color="on-surface-variant"
+        @click="$emit('openFilter')"
         class="text-none"
       >
-        <v-badge
-          :content="cartCount"
-          :model-value="cartCount > 0"
-          color="error"
-        >
-          <v-icon>mdi-cart-outline</v-icon>
-        </v-badge>
-        <span class="ml-2">购物车</span>
+        <v-icon>mdi-filter-variant</v-icon>
+        <span class="ml-2">筛选</span>
       </v-btn>
 
       <v-btn
-        variant="text"
-        :color="isActive('/orders') ? 'primary' : 'on-surface-variant'"
-        @click="goOrders"
-        class="text-none"
+        v-if="!auth.isAuthenticated"
+        color="primary"
+        variant="elevated"
+        :to="{ name: 'login' }"
+        prepend-icon="mdi-login"
+        class="ml-2"
       >
-        <v-icon>mdi-receipt-text-outline</v-icon>
-        <span class="ml-2">订单</span>
+        登录
       </v-btn>
-    </template>
 
-    <!-- User Section -->
-    <div v-if="auth.isAuthenticated" class="ml-2">
-      <span v-if="$vuetify.display.mdAndUp" class="body-medium mr-4">
-        你好，{{ auth.user?.username }}
-      </span>
       <v-btn
+        v-else
         icon
         variant="outlined"
         :color="'primary'"
         @click="goProfile"
+        class="ml-2"
       >
         <v-avatar size="32">
           <v-img v-if="avatarUrl" :src="avatarUrl" alt="avatar" />
           <span v-else class="text-primary">{{ initials }}</span>
         </v-avatar>
       </v-btn>
-    </div>
+    </template>
 
-    <v-btn
-      v-else
-      color="primary"
-      variant="elevated"
-      :to="{ name: 'login' }"
-      prepend-icon="mdi-login"
-      class="ml-2"
-    >
-      登录
-    </v-btn>
-
-    <!-- Mobile Navigation Menu -->
+    <!-- Mobile Actions -->
     <template v-if="$vuetify.display.smAndDown">
       <v-btn
         icon
-        @click="mobileMenuOpen = !mobileMenuOpen"
+        @click="searchDialog = true"
       >
-        <v-icon>mdi-menu</v-icon>
+        <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </template>
   </v-app-bar>
 
-  <!-- Mobile Navigation Drawer -->
+<!-- Left Navigation Drawer -->
   <v-navigation-drawer
-    v-model="mobileMenuOpen"
-    location="bottom"
+    v-model="drawerOpen"
+    location="left"
     temporary
-    class="pa-4"
+    class="left-drawer"
   >
     <v-list nav>
-      <!-- 已移除“商品”项 -->
+      <v-list-item
+        v-if="isStaffOrAdmin"
+        to="/admin"
+        prepend-icon="mdi-view-dashboard-outline"
+        title="仪表盘"
+        :active="isActive('/admin')"
+        @click="drawerOpen = false"
+      ></v-list-item>
 
       <v-list-item
         @click="goCart"
@@ -133,12 +117,22 @@
         :active="isActive('/orders')"
       ></v-list-item>
 
+      <v-divider class="my-2"></v-divider>
+
       <v-list-item
-        v-if="isStaffOrAdmin"
-        to="/admin"
-        prepend-icon="mdi-view-dashboard-outline"
-        title="仪表盘"
-        :active="isActive('/admin')"
+        v-if="auth.isAuthenticated"
+        @click="goProfile"
+        prepend-icon="mdi-account-circle-outline"
+        title="个人中心"
+        :active="isActive('/profile')"
+      ></v-list-item>
+
+      <v-list-item
+        v-else
+        :to="{ name: 'login' }"
+        prepend-icon="mdi-login"
+        title="登录"
+        @click="drawerOpen = false"
       ></v-list-item>
     </v-list>
   </v-navigation-drawer>
@@ -194,9 +188,11 @@ const isStaffOrAdmin = computed(() => auth.user?.role === 'staff' || auth.user?.
 
 const avatarUrl = '' // 可接入上传头像地址
 const initials = computed(() => (auth.user?.username?.[0] || 'U').toUpperCase())
-const mobileMenuOpen = ref(false)
+const drawerOpen = ref(false)
 const searchDialog = ref(false)
 const searchQuery = ref('')
+
+defineEmits(['openFilter'])
 
 const handleSearch = () => {
   if (route.path !== '/') {
@@ -213,7 +209,7 @@ const goCart = () => {
     ui.promptLoginAndRedirect('/cart')
   } else {
     router.push({ name: 'cart' })
-    mobileMenuOpen.value = false
+    drawerOpen.value = false
   }
 }
 
@@ -222,12 +218,13 @@ const goOrders = () => {
     ui.promptLoginAndRedirect('/orders')
   } else {
     router.push({ name: 'orders' })
-    mobileMenuOpen.value = false
+    drawerOpen.value = false
   }
 }
 
 const goProfile = () => {
   router.push({ name: 'profile' })
+  drawerOpen.value = false
 }
 </script>
 
