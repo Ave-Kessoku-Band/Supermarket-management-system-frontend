@@ -1,42 +1,107 @@
 <template>
-  <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
-    <div style="flex:1;min-width:220px;">
-      <label class="small">搜索</label>
-      <input class="input" v-model="search" placeholder="输入商品名" @keyup.enter="fetch" />
-    </div>
-    <div style="width:220px;">
-      <label class="small">库存状态</label>
-      <select class="input" v-model="stockStatus">
-        <option value="">全部</option>
-        <option value="OK">有货</option>
-        <option value="LOW">库存紧张</option>
-        <option value="OUT">无库存</option>
-      </select>
-    </div>
-    <button class="btn" @click="fetch">查询</button>
-  </div>
+  <div class="products-page">
+    <!-- Search and Filter Section -->
+    <v-card class="mb-6" elevation="2">
+      <v-card-text class="pa-4">
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="search"
+              label="搜索商品"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              clearable
+              @keyup.enter="fetch"
+              @click:clear="search = ''; fetch()"
+            ></v-text-field>
+          </v-col>
 
-  <div class="grid" :class="gridCls" style="margin-top:16px;">
-    <ProductCard
-      v-for="p in products"
-      :key="p.id"
-      :name="p.name"
-      :category="p.category"
-      :unit="p.unit"
-      :price="p.price"
-      :image="p.imageUrl"
-      :stock="p.stock"
-      :stock-status="p.stockStatus"
-      :disabled="p.stockStatus === 'OUT'"
-      @add="onAddToCart(p)"
-    />
-  </div>
+          <v-col cols="12" md="4">
+            <v-select
+              v-model="stockStatus"
+              label="库存状态"
+              :items="stockStatusOptions"
+              variant="outlined"
+              clearable
+              prepend-inner-icon="mdi-package-variant-closed"
+            ></v-select>
+          </v-col>
 
-  <Pagination v-if="meta" v-model:page="page" :total-pages="meta.total_pages || 1" />
+          <v-col cols="12" md="2" class="d-flex align-end">
+            <v-btn
+              color="primary"
+              variant="elevated"
+              size="large"
+              block
+              @click="fetch"
+              prepend-icon="mdi-magnify"
+            >
+              查询
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+
+    <!-- Loading State -->
+    <div v-if="products.length === 0 && loading" class="text-center py-8">
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="48"
+        class="mb-4"
+      ></v-progress-circular>
+      <div class="body-medium text-medium-emphasis">加载商品中...</div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="products.length === 0 && !loading" class="text-center py-8">
+      <v-icon size="64" color="medium-emphasis" class="mb-4">
+        mdi-package-variant
+      </v-icon>
+      <div class="title-medium text-medium-emphasis mb-2">暂无商品</div>
+      <div class="body-medium text-medium-emphasis">
+        尝试调整搜索条件或筛选器
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <v-row v-else>
+      <v-col
+        v-for="product in products"
+        :key="product.id"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+        class="product-col"
+      >
+        <ProductCard
+          :name="product.name"
+          :category="product.category"
+          :unit="product.unit"
+          :price="product.price"
+          :image="product.imageUrl"
+          :stock="product.stock"
+          :stock-status="product.stockStatus"
+          :disabled="product.stockStatus === 'OUT'"
+          @add="onAddToCart(product)"
+        />
+      </v-col>
+    </v-row>
+
+    <!-- Pagination -->
+    <div v-if="meta && meta.total_pages > 1" class="d-flex justify-center mt-8">
+      <Pagination
+        v-model:page="page"
+        :total-pages="meta.total_pages || 1"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { apiListProducts } from '@/api/endpoints'
 import ProductCard from '@/components/ProductCard.vue'
 import Pagination from '@/components/Pagination.vue'
@@ -52,40 +117,56 @@ const search = ref('')
 const stockStatus = ref<string>('')
 const page = ref(1)
 const per_page = ref(12)
+const loading = ref(false)
 
 const products = ref<any[]>([])
 const meta = ref<any | null>(null)
 
-const gridCls = computed(() => {
-  if (window.innerWidth >= 1100) return 'grid-cols-4'
-  if (window.innerWidth >= 800) return 'grid-cols-3'
-  return 'grid-cols-2'
-})
+const stockStatusOptions = [
+  { title: '全部', value: '' },
+  { title: '有货', value: 'OK' },
+  { title: '库存紧张', value: 'LOW' },
+  { title: '无库存', value: 'OUT' }
+]
 
 const fetch = async () => {
-  const data = await apiListProducts({
-    search: search.value || undefined,
-    stock_status: stockStatus.value || undefined,
-    page: page.value,
-    per_page: per_page.value
-  })
-  products.value = data.data || []
-  meta.value = data.meta || null
+  loading.value = true
+  try {
+    const data = await apiListProducts({
+      search: search.value || undefined,
+      stock_status: stockStatus.value || undefined,
+      page: page.value,
+      per_page: per_page.value
+    })
+    products.value = data.data || []
+    meta.value = data.meta || null
+  } catch (error) {
+    console.error('Failed to fetch products:', error)
+    products.value = []
+  } finally {
+    loading.value = false
+  }
 }
-
-watch(page, fetch)
-onMounted(fetch)
 
 const onAddToCart = async (p: any) => {
   if (!auth.isAuthenticated) {
-    // 停留在首页，提示后跳登录（回跳到首页）
     ui.promptLoginAndRedirect('/')
     return
   }
   try {
     await cart.add(p.id, 1)
+    // Show success message
+    ui.showToast('已添加到购物车', 'success')
   } catch (e: any) {
-    alert(e?.response?.data?.message || '添加失败')
+    ui.showToast(e?.response?.data?.message || '添加失败', 'error')
   }
 }
+
+watch(() => [search.value, stockStatus.value], () => {
+  page.value = 1
+  fetch()
+})
+
+watch(page, fetch)
+onMounted(fetch)
 </script>

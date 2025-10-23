@@ -1,149 +1,172 @@
-:root{
-  /* 浅色主题变量 */
-  --bg: #f8fafc;           /* 页面基底 */
-  --fg: #1f2937;           /* 主文本（slate-800） */
-  --muted: #667085;        /* 次级文本 */
-  --accent: #3b82f6;       /* 主色（蓝） */
-  --glass-bg: rgba(255,255,255,0.65); /* 玻璃底色：白色半透明 */
-  --glass-border: rgba(16,24,40,0.08);/* 玻璃描边：浅灰 */
-  --shadow: rgba(15,23,42,0.08);      /* 柔和阴影 */
+/* Material Design 3 Custom Styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+* {
+  font-family: 'Roboto', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
 }
 
-*{ box-sizing: border-box; }
-html, body, #app { height: 100%; }
-body {
-  margin: 0;
-  /* 浅色柔和背景（可根据喜好微调） */
-  background:
-    radial-gradient(1000px 800px at 10% 10%, rgba(59,130,246,0.10), transparent 60%),
-    radial-gradient(900px 700px at 90% 0%, rgba(16,185,129,0.08), transparent 60%),
-    linear-gradient(#ffffff, #f8fafc);
-  color: var(--fg);
-  font-family: 'wenfeng-misa', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+/* Material Design 3 elevation shadows */
+.elevation-1 { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15); }
+.elevation-2 { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15); }
+.elevation-3 { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15); }
+.elevation-4 { box-shadow: 0 2px 3px 0 rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.15); }
+.elevation-5 { box-shadow: 0 4px 4px 0 rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.15); }
+
+/* Material Design 3 state layer */
+.state-layer {
+  position: relative;
+  overflow: hidden;
 }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-button, input, select, textarea {
-  font: inherit;
+.state-layer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.08;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s ease-out, height 0.2s ease-out, opacity 0.2s ease-out;
 }
 
-.app-bg {
-  min-height: 100%;
-  /* 顶部一点点色彩流动的高光 */
-  background:
-    radial-gradient(600px 300px at 80% -10%, rgba(59,130,246,0.12), transparent 60%),
-    radial-gradient(600px 300px at 10% 0%, rgba(16,185,129,0.10), transparent 60%);
-}
-
-/* 玻璃拟态容器：白色基底、轻描边、柔和阴影与模糊 */
-.glass {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 30px var(--shadow);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-}
-
-.navbar {
-  position: sticky;
-  top: 8px; /* 上边沿留缝 */
-  z-index: 50;
-  border-radius: 16px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.nav-spacer { flex: 1; }
-
-/* 轻量按钮：浅色背景 + 细描边 */
-.btn {
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75));
-  border: 1px solid rgba(16,24,40,0.12);
-  color: var(--fg);
-  border-radius: 12px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: box-shadow .15s ease, transform .02s ease, background .15s ease, border-color .15s ease;
-}
-.btn:hover {
-  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,0.85));
-  border-color: rgba(16,24,40,0.18);
-  box-shadow: 0 4px 12px rgba(15,23,42,0.08);
-}
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: .6; cursor: not-allowed; }
-
-/* 输入与下拉：白色半透明底 + 浅描边 */
-.input, select {
+.state-layer:hover::before {
   width: 100%;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid rgba(16,24,40,0.12);
-  color: var(--fg);
-  border-radius: 12px;
-  padding: 10px 12px;
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
-}
-.input::placeholder { color: #98a2b3; }
-.input:focus, select:focus {
-  border-color: rgba(59,130,246,0.45);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
-  background: rgba(255,255,255,0.98);
+  height: 100%;
+  opacity: 0.08;
 }
 
-.card {
-  border-radius: 16px;
-  padding: 14px;
+.state-layer:active::before {
+  opacity: 0.12;
 }
 
+/* Custom utility classes that work with Vuetify */
 .grid {
   display: grid;
   gap: 16px;
 }
-.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-
-.section-title {
-  font-size: 20px; font-weight: 600; margin: 12px 0;
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.small {
-  color: var(--muted);
-  font-size: 12px;
+/* Responsive grid for Material Design 3 */
+@media (max-width: 600px) {
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-hr.hr {
-  border: none;
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(16,24,40,0.15), transparent);
-  margin: 10px 0;
+@media (max-width: 400px) {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* 头像按钮在浅色下的适配 */
-.avatar {
-  width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.9);
-  border: 1px solid rgba(16,24,40,0.12);
-}
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
-.avatar-fallback { color: var(--fg); font-weight: 700; }
-
-/* 产品图底板在浅色下更柔和 */
-.thumb {
-  width: 100%;
-  padding-top: 62%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
-  background-size: cover;
-  background-position: center;
+/* Custom card styling compatible with Vuetify */
+.material-card {
   border-radius: 12px;
-  border: 1px solid rgba(16,24,40,0.10);
+  padding: 16px;
+  background: var(--v-theme-surface);
+  color: var(--v-theme-on-surface);
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* 活动态的按钮高亮描边（浅色） */
-.btn.active { outline: 2px solid rgba(59,130,246,0.25); }
+.material-card:hover {
+  box-shadow: var(--v-shadow-elevation-3);
+}
+
+/* Text styles following Material Design 3 */
+.headline-large {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 40px;
+  letter-spacing: 0;
+}
+
+.headline-medium {
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 36px;
+  letter-spacing: 0;
+}
+
+.headline-small {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+  letter-spacing: 0;
+}
+
+.title-large {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0;
+}
+
+.title-medium {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+}
+
+.title-small {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+}
+
+.body-large {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+}
+
+.body-medium {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+}
+
+.body-small {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+}
+
+.label-large {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+}
+
+.label-medium {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+}
+
+.label-small {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+}

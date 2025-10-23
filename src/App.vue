@@ -1,14 +1,14 @@
 <template>
-  <div class="app-bg">
-    <div class="container">
+  <v-app>
+    <v-main>
       <NavBar v-if="showNav" />
-      <main class="app-main">
+      <v-container fluid class="pa-4">
         <router-view />
-      </main>
-    </div>
+      </v-container>
+    </v-main>
     <!-- 全局提示 -->
     <GlobalToast />
-  </div>
+  </v-app>
 </template>
 
 <script setup lang="ts">
