@@ -181,7 +181,20 @@ const goProfile = () => {
 
 <style scoped>
 .navbar {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  .navbar {
+    background: rgba(30, 30, 30, 0.7) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
 }
 </style>
