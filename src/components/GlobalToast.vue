@@ -111,9 +111,17 @@ const hideToast = () => {
   border-radius: 12px !important;
   backdrop-filter: blur(8px) saturate(180%);
   -webkit-backdrop-filter: blur(8px) saturate(180%);
-  min-width: min(300px, 90vw);
-  max-width: 560px;
+  min-width: auto !important;
+  max-width: none !important;
+  width: auto !important;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+  padding: 0 !important;
+}
+
+:deep(.material-toast .v-snackbar__content) {
+  padding: 0 !important;
+  width: auto !important;
+  max-width: none !important;
 }
 
 /* Success toast styling */
@@ -135,7 +143,9 @@ const hideToast = () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
+  padding: 12px 16px;
+  min-height: 48px;
+  white-space: nowrap;
 }
 
 .toast-icon {
@@ -143,10 +153,10 @@ const hideToast = () => {
 }
 
 .toast-message {
-  flex: 1;
   font-size: 14px;
-  line-height: 1.4;
-  word-break: break-word;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 .toast-close {
@@ -171,8 +181,17 @@ const hideToast = () => {
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  min-width: min(280px, 85vw);
-  max-width: 560px;
+  min-width: auto;
+  max-width: none;
+  width: auto;
+}
+
+.toast-card .toast-content {
+  white-space: nowrap;
+}
+
+.toast-card .toast-message {
+  white-space: nowrap;
 }
 
 /* Slide animations */
@@ -207,12 +226,13 @@ const hideToast = () => {
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   :deep(.material-toast .v-snackbar__wrapper) {
-    margin: 0 16px;
+    margin: 0 12px;
     border-radius: 8px !important;
+    max-width: calc(100vw - 24px) !important;
   }
 
-  .toast-card {
-    margin: 0 8px;
+  .toast-content {
+    padding: 10px 14px;
   }
 
   .toast-message {
@@ -241,6 +261,14 @@ const hideToast = () => {
 
   .toast-card {
     border: 2px solid var(--v-theme-outline);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .toast-card {
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.15);
   }
 }
 </style>

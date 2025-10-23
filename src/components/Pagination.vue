@@ -78,14 +78,24 @@ const onPageChange = (newPage: number) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 0;
+  padding: 24px 0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 /* Material Design 3 pagination styling */
 :deep(.v-pagination__item) {
   border-radius: 12px;
-  margin: 0 2px;
+  margin: 0 4px;
   transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 :deep(.v-pagination__item:hover) {
@@ -106,11 +116,25 @@ const onPageChange = (newPage: number) => {
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   .pagination-container {
-    padding: 12px 0;
+    padding: 16px 0;
   }
 
   :deep(.v-pagination) {
     gap: 4px;
+  }
+  
+  :deep(.v-pagination__item) {
+    margin: 0 2px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pagination-container {
+    background: rgba(30, 30, 30, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
   }
 }
 </style>

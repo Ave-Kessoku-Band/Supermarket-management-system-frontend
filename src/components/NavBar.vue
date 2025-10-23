@@ -23,8 +23,17 @@
 
     <v-spacer></v-spacer>
 
-    <!-- Right Actions: Cart & Orders -->
+    <!-- Right Actions: Search, Cart & Orders -->
     <template v-if="$vuetify.display.mdAndUp">
+      <v-btn
+        icon
+        variant="text"
+        color="on-surface-variant"
+        @click="searchDialog = true"
+      >
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+
       <v-btn
         variant="text"
         :color="isActive('/cart') ? 'primary' : 'on-surface-variant'"
@@ -133,6 +142,37 @@
       ></v-list-item>
     </v-list>
   </v-navigation-drawer>
+
+  <!-- Search Dialog -->
+  <v-dialog v-model="searchDialog" max-width="600">
+    <v-card class="glass-dialog">
+      <v-card-title class="d-flex align-center pa-4">
+        <v-icon class="mr-2">mdi-magnify</v-icon>
+        搜索商品
+        <v-spacer></v-spacer>
+        <v-btn icon variant="text" @click="searchDialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text class="pa-4">
+        <v-text-field
+          v-model="searchQuery"
+          placeholder="输入商品名称"
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          clearable
+          autofocus
+          @keyup.enter="handleSearch"
+          @click:clear="searchQuery = ''"
+        ></v-text-field>
+      </v-card-text>
+      <v-card-actions class="pa-4 pt-0">
+        <v-spacer></v-spacer>
+        <v-btn variant="text" @click="searchDialog = false">取消</v-btn>
+        <v-btn color="primary" variant="elevated" @click="handleSearch">搜索</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -155,6 +195,18 @@ const isStaffOrAdmin = computed(() => auth.user?.role === 'staff' || auth.user?.
 const avatarUrl = '' // 可接入上传头像地址
 const initials = computed(() => (auth.user?.username?.[0] || 'U').toUpperCase())
 const mobileMenuOpen = ref(false)
+const searchDialog = ref(false)
+const searchQuery = ref('')
+
+const handleSearch = () => {
+  if (route.path !== '/') {
+    router.push({ name: 'products', query: { search: searchQuery.value } })
+  } else {
+    // 触发产品页面搜索
+    window.dispatchEvent(new CustomEvent('navbar-search', { detail: searchQuery.value }))
+  }
+  searchDialog.value = false
+}
 
 const goCart = () => {
   if (!auth.isAuthenticated) {
@@ -195,6 +247,21 @@ const goProfile = () => {
   .navbar {
     background: rgba(30, 30, 30, 0.7) !important;
     border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.glass-dialog {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-dialog {
+    background: rgba(30, 30, 30, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.1);
   }
 }
 </style>

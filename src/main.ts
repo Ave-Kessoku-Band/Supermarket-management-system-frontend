@@ -17,7 +17,7 @@ const vuetify = createVuetify({
   directives,
   blueprint: md3,
   theme: {
-    defaultTheme: 'light',
+    defaultTheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     themes: {
       light: {
         colors: {
@@ -43,8 +43,8 @@ const vuetify = createVuetify({
           primary: '#D0BCFF',
           secondary: '#CCC2DC',
           tertiary: '#EFB8C8',
-          surface: '#141218',
-          background: '#141218',
+          surface: '#1C1B1F',
+          background: '#1C1B1F',
           error: '#FFB4AB',
           'on-primary': '#381E72',
           'on-secondary': '#332D41',
@@ -65,4 +65,13 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(vuetify)
+
+// 监听系统主题变化
+if (window.matchMedia) {
+  const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  darkModeQuery.addEventListener('change', (e) => {
+    vuetify.theme.global.name.value = e.matches ? 'dark' : 'light'
+  })
+}
+
 app.mount('#app')

@@ -142,12 +142,12 @@ const onAddToCart = async () => {
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.08),
     0 1px 2px rgba(0, 0, 0, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
@@ -174,8 +174,8 @@ const onAddToCart = async () => {
     0 24px 48px rgba(102, 126, 234, 0.2),
     0 8px 16px rgba(102, 126, 234, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-color: rgba(102, 126, 234, 0.4);
-  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(102, 126, 234, 0.3);
+  background: rgba(255, 255, 255, 0.85) !important;
 }
 
 .product-card:hover::before {
@@ -191,7 +191,7 @@ const onAddToCart = async () => {
 .product-card--disabled:hover {
   transform: none;
   box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.08),
     0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -218,8 +218,8 @@ const onAddToCart = async () => {
   top: 12px;
   right: 12px;
   font-weight: 500;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 2;
 }
@@ -266,13 +266,15 @@ const onAddToCart = async () => {
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .product-card {
-    background: rgba(40, 40, 40, 0.7);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(30, 30, 30, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
   }
   
   .product-card:hover {
-    background: rgba(50, 50, 50, 0.85);
-    border-color: rgba(102, 126, 234, 0.5);
+    background: rgba(40, 40, 40, 0.85) !important;
+    border-color: rgba(102, 126, 234, 0.4);
   }
   
   .product-card::before {

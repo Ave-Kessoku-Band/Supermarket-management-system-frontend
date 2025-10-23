@@ -1,51 +1,46 @@
 <template>
   <div class="products-page">
-    <!-- Search and Filter Section with Glass Effect -->
-    <v-card class="glass-card mb-8" elevation="0">
-      <v-card-text class="pa-4">
-        <v-row align="center">
-          <v-col cols="12" md="6">
-            <v-text-field
-              v-model="search"
-              placeholder="搜索商品"
-              prepend-inner-icon="mdi-magnify"
-              variant="outlined"
-              clearable
-              density="comfortable"
-              hide-details
-              @keyup.enter="fetch"
-              @click:clear="search = ''; fetch()"
-            ></v-text-field>
-          </v-col>
+    <!-- Floating Filter Button -->
+    <v-btn
+      class="filter-fab"
+      color="primary"
+      icon
+      size="large"
+      elevation="8"
+      @click="filterDialog = true"
+    >
+      <v-icon>mdi-filter-variant</v-icon>
+    </v-btn>
 
-          <v-col cols="12" md="4">
-            <v-select
-              v-model="stockStatus"
-              placeholder="库存状态"
-              :items="stockStatusOptions"
-              variant="outlined"
-              clearable
-              density="comfortable"
-              prepend-inner-icon="mdi-package-variant-closed"
-              hide-details
-            ></v-select>
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-btn
-              color="primary"
-              variant="elevated"
-              size="large"
-              block
-              @click="fetch"
-              prepend-icon="mdi-magnify"
-            >
-              查询
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+    <!-- Filter Dialog -->
+    <v-dialog v-model="filterDialog" max-width="500">
+      <v-card class="glass-dialog">
+        <v-card-title class="d-flex align-center pa-4">
+          <v-icon class="mr-2">mdi-filter-variant</v-icon>
+          筛选商品
+          <v-spacer></v-spacer>
+          <v-btn icon variant="text" @click="filterDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <v-select
+            v-model="stockStatus"
+            label="库存状态"
+            :items="stockStatusOptions"
+            variant="outlined"
+            clearable
+            prepend-inner-icon="mdi-package-variant-closed"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-btn variant="text" @click="clearFilters">清除筛选</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="filterDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="elevated" @click="applyFilters">应用</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Loading State -->
     <div v-if="products.length === 0 && loading" class="text-center py-8">
@@ -106,6 +101,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { apiListProducts } from '@/api/endpoints'
 import ProductCard from '@/components/ProductCard.vue'
 import Pagination from '@/components/Pagination.vue'
@@ -116,12 +112,14 @@ import { useUiStore } from '@/store/ui'
 const auth = useAuthStore()
 const cart = useCartStore()
 const ui = useUiStore()
+const route = useRoute()
 
 const search = ref('')
 const stockStatus = ref<string>('')
 const page = ref(1)
 const per_page = ref(12)
 const loading = ref(false)
+const filterDialog = ref(false)
 
 const products = ref<any[]>([])
 const meta = ref<any | null>(null)
@@ -152,6 +150,19 @@ const fetch = async () => {
   }
 }
 
+const applyFilters = () => {
+  page.value = 1
+  fetch()
+  filterDialog.value = false
+}
+
+const clearFilters = () => {
+  stockStatus.value = ''
+  page.value = 1
+  fetch()
+  filterDialog.value = false
+}
+
 const onAddToCart = async (p: any) => {
   if (!auth.isAuthenticated) {
     ui.promptLoginAndRedirect('/')
@@ -166,63 +177,81 @@ const onAddToCart = async (p: any) => {
   }
 }
 
-watch(() => [search.value, stockStatus.value], () => {
+// 监听导航栏搜索事件
+const handleNavbarSearch = (e: CustomEvent) => {
+  search.value = e.detail
   page.value = 1
   fetch()
-})
+}
+
+// 监听URL查询参数
+watch(() => route.query.search, (newSearch) => {
+  if (newSearch && typeof newSearch === 'string') {
+    search.value = newSearch
+    page.value = 1
+    fetch()
+  }
+}, { immediate: true })
 
 watch(page, fetch)
-onMounted(fetch)
+
+onMounted(() => {
+  // 如果URL没有搜索参数，正常加载
+  if (!route.query.search) {
+    fetch()
+  }
+  // 添加事件监听
+  window.addEventListener('navbar-search', handleNavbarSearch as EventListener)
+})
 </script>
 
 <style scoped>
 .products-page {
   position: relative;
-  background: linear-gradient(180deg, 
-    rgba(102, 126, 234, 0.03) 0%, 
-    rgba(118, 75, 162, 0.02) 50%,
-    transparent 100%);
-  min-height: 100vh;
-  padding-top: 24px;
+  min-height: calc(100vh - 64px);
+  padding: 24px 0;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
-/* Enhanced Glass Morphism Card with Multi-layer Blur */
-.glass-card {
-  position: relative;
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  border-radius: 24px !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card::before {
+.products-page::before {
   content: '';
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 24px;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.3) 0%, 
-    rgba(255, 255, 255, 0.05) 100%);
+  background: linear-gradient(180deg, 
+    rgba(102, 126, 234, 0.03) 0%, 
+    rgba(118, 75, 162, 0.02) 50%,
+    transparent 100%);
+  z-index: -1;
   pointer-events: none;
-  opacity: 0.5;
 }
 
-.glass-card:hover {
+/* Floating Filter Button */
+.filter-fab {
+  position: fixed;
+  top: 88px;
+  right: 24px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-fab:hover {
   transform: translateY(-2px);
-  box-shadow: 
-    0 12px 48px rgba(0, 0, 0, 0.12),
-    0 2px 4px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
-  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Glass Dialog */
+.glass-dialog {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Product Grid Animation with Stagger */
@@ -257,18 +286,18 @@ onMounted(fetch)
 }
 
 /* Enhanced Input Fields with Blur */
-.glass-card :deep(.v-field) {
+.glass-dialog :deep(.v-field) {
   background: rgba(255, 255, 255, 0.6) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 16px !important;
 }
 
-.glass-card :deep(.v-field:hover) {
+.glass-dialog :deep(.v-field:hover) {
   background: rgba(255, 255, 255, 0.75) !important;
 }
 
-.glass-card :deep(.v-field--focused) {
+.glass-dialog :deep(.v-field--focused) {
   background: rgba(255, 255, 255, 0.85) !important;
   box-shadow: 
     0 4px 16px rgba(102, 126, 234, 0.15),
@@ -277,35 +306,27 @@ onMounted(fetch)
 
 /* Dark mode support with enhanced blur */
 @media (prefers-color-scheme: dark) {
-  .products-page {
+  .products-page::before {
     background: linear-gradient(180deg, 
       rgba(102, 126, 234, 0.08) 0%, 
       rgba(118, 75, 162, 0.05) 50%,
       transparent 100%);
   }
   
-  .glass-card {
-    background: rgba(30, 30, 30, 0.6) !important;
+  .glass-dialog {
+    background: rgba(30, 30, 30, 0.95) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(40px) saturate(150%);
-    -webkit-backdrop-filter: blur(40px) saturate(150%);
   }
   
-  .glass-card::before {
-    background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.1) 0%, 
-      rgba(255, 255, 255, 0.02) 100%);
-  }
-  
-  .glass-card :deep(.v-field) {
+  .glass-dialog :deep(.v-field) {
     background: rgba(45, 45, 45, 0.6) !important;
   }
   
-  .glass-card :deep(.v-field:hover) {
+  .glass-dialog :deep(.v-field:hover) {
     background: rgba(55, 55, 55, 0.7) !important;
   }
   
-  .glass-card :deep(.v-field--focused) {
+  .glass-dialog :deep(.v-field--focused) {
     background: rgba(60, 60, 60, 0.8) !important;
   }
 }
