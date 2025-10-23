@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useUiStore } from '@/store/ui'
 
@@ -8,6 +8,9 @@ const routes: RouteRecordRaw[] = [
   // 登录 / 注册为独立页面，隐藏导航栏
   { path: '/login', name: 'login', component: () => import('@/pages/Login.vue'), meta: { public: true, hideNav: true } },
   { path: '/register', name: 'register', component: () => import('@/pages/Register.vue'), meta: { public: true, hideNav: true } },
+
+  // 新增：个人信息修改页
+  { path: '/profile', name: 'profile', component: () => import('@/pages/Profile.vue'), meta: { requiresAuth: true } },
 
   { path: '/cart', name: 'cart', component: () => import('@/pages/Cart.vue'), meta: { requiresAuth: true, roles: ['member'] } },
   { path: '/orders', name: 'orders', component: () => import('@/pages/Orders.vue'), meta: { requiresAuth: true } },
@@ -31,7 +34,7 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 

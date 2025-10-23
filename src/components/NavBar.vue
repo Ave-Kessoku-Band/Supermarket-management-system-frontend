@@ -1,25 +1,30 @@
 <template>
   <v-app-bar color="surface" elevation="2" class="navbar">
-    <!-- Brand Logo -->
+    <!-- Brand Logo (点击标题返回主页) -->
     <v-app-bar-title>
       <router-link to="/" class="text-decoration-none text-primary">
         <span class="title-large">NEW 超市</span>
       </router-link>
     </v-app-bar-title>
 
-    <v-spacer></v-spacer>
-
-    <!-- Navigation Items -->
+    <!-- Left Navigation Items (仅保留员工/管理员的仪表盘) -->
     <template v-if="$vuetify.display.mdAndUp">
       <v-btn
+        v-if="isStaffOrAdmin"
         variant="text"
-        :color="isActive('/') ? 'primary' : 'on-surface-variant'"
-        @click="$router.push('/')"
+        :color="isActive('/admin') ? 'primary' : 'on-surface-variant'"
+        @click="$router.push('/admin')"
         class="text-none"
       >
-        商品
+        <v-icon>mdi-view-dashboard-outline</v-icon>
+        <span class="ml-2">仪表盘</span>
       </v-btn>
+    </template>
 
+    <v-spacer></v-spacer>
+
+    <!-- Right Actions: Cart & Orders -->
+    <template v-if="$vuetify.display.mdAndUp">
       <v-btn
         variant="text"
         :color="isActive('/cart') ? 'primary' : 'on-surface-variant'"
@@ -45,65 +50,24 @@
         <v-icon>mdi-receipt-text-outline</v-icon>
         <span class="ml-2">订单</span>
       </v-btn>
-
-      <v-btn
-        v-if="isStaffOrAdmin"
-        variant="text"
-        :color="isActive('/admin') ? 'primary' : 'on-surface-variant'"
-        @click="$router.push('/admin')"
-        class="text-none"
-      >
-        <v-icon>mdi-view-dashboard-outline</v-icon>
-        <span class="ml-2">仪表盘</span>
-      </v-btn>
     </template>
 
-    <v-spacer></v-spacer>
-
     <!-- User Section -->
-    <div v-if="auth.isAuthenticated">
-      <!-- Welcome message (desktop only) -->
+    <div v-if="auth.isAuthenticated" class="ml-2">
       <span v-if="$vuetify.display.mdAndUp" class="body-medium mr-4">
         你好，{{ auth.user?.username }}
       </span>
-
-      <!-- User Avatar Menu -->
-      <v-menu v-model="menuOpen" :close-on-content-click="false">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            icon
-            variant="outlined"
-            v-bind="props"
-            :color="'primary'"
-          >
-            <v-avatar size="32">
-              <v-img v-if="avatarUrl" :src="avatarUrl" alt="avatar" />
-              <span v-else class="text-primary">{{ initials }}</span>
-            </v-avatar>
-          </v-btn>
-        </template>
-
-        <v-card min-width="200">
-          <v-card-text>
-            <div class="body-medium mb-2">{{ auth.user?.username }}</div>
-            <div class="label-medium text-medium-emphasis">角色：{{ auth.user?.role }}</div>
-          </v-card-text>
-
-          <v-divider></v-divider>
-
-          <v-card-actions>
-            <v-btn
-              variant="text"
-              block
-              color="error"
-              @click="logout"
-              prepend-icon="mdi-logout"
-            >
-              退出登录
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-menu>
+      <v-btn
+        icon
+        variant="outlined"
+        :color="'primary'"
+        @click="goProfile"
+      >
+        <v-avatar size="32">
+          <v-img v-if="avatarUrl" :src="avatarUrl" alt="avatar" />
+          <span v-else class="text-primary">{{ initials }}</span>
+        </v-avatar>
+      </v-btn>
     </div>
 
     <v-btn
@@ -112,6 +76,7 @@
       variant="elevated"
       :to="{ name: 'login' }"
       prepend-icon="mdi-login"
+      class="ml-2"
     >
       登录
     </v-btn>
@@ -135,12 +100,7 @@
     class="pa-4"
   >
     <v-list nav>
-      <v-list-item
-        to="/"
-        prepend-icon="mdi-shopping-outline"
-        title="商品"
-        :active="isActive('/')"
-      ></v-list-item>
+      <!-- 已移除“商品”项 -->
 
       <v-list-item
         @click="goCart"
@@ -194,7 +154,6 @@ const isStaffOrAdmin = computed(() => auth.user?.role === 'staff' || auth.user?.
 
 const avatarUrl = '' // 可接入上传头像地址
 const initials = computed(() => (auth.user?.username?.[0] || 'U').toUpperCase())
-const menuOpen = ref(false)
 const mobileMenuOpen = ref(false)
 
 const goCart = () => {
@@ -215,10 +174,8 @@ const goOrders = () => {
   }
 }
 
-const logout = async () => {
-  await auth.logout()
-  router.push({ name: 'products' })
-  menuOpen.value = false
+const goProfile = () => {
+  router.push({ name: 'profile' })
 }
 </script>
 
