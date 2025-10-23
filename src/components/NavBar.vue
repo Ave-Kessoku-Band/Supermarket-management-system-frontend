@@ -3,7 +3,7 @@
     <!-- Brand Logo (点击标题返回主页) -->
     <v-app-bar-title>
       <router-link to="/" class="text-decoration-none text-primary">
-        <span class="title-large">NEW 超市</span>
+        <span class="title-large">爪哇超市</span>
       </router-link>
     </v-app-bar-title>
 
@@ -185,7 +185,7 @@ const goProfile = () => {
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   background: rgba(255, 255, 255, 0.7) !important;
   border-bottom: 1.5px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.06),
     0 1px 2px rgba(0, 0, 0, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
