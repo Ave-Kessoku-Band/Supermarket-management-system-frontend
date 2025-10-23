@@ -13,7 +13,7 @@
               <v-icon size="72" color="primary" class="mb-4">
                 mdi-storefront-outline
               </v-icon>
-              <h1 class="headline-large text-primary mb-2">NEW 超市</h1>
+              <h1 class="headline-large text-primary mb-2">爪哇超市</h1>
             </div>
 
             <!-- Login Form -->
@@ -210,7 +210,7 @@ const onSubmit = async () => {
     border-radius: 24px;
     min-height: auto;
   }
-  
+
   .auth-card .pa-10 {
     padding: 32px 24px !important;
   }
@@ -225,7 +225,7 @@ const onSubmit = async () => {
       radial-gradient(400px 300px at 40% 40%, rgba(125, 82, 96, 0.15), transparent 60%),
       linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(30, 25, 40, 0.98));
   }
-  
+
   .auth-card {
     background: rgba(40, 40, 45, 0.7);
     border-color: rgba(255, 255, 255, 0.15);
