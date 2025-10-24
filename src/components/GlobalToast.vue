@@ -265,7 +265,7 @@ const hideToast = () => {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+.v-theme--dark {
   .toast-card {
     background: rgba(30, 30, 30, 0.95);
     border-color: rgba(255, 255, 255, 0.15);

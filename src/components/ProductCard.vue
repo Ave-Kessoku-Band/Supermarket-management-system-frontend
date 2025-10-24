@@ -264,7 +264,7 @@ const onAddToCart = async () => {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+.v-theme--dark {
   .product-card {
     background: rgba(30, 30, 30, 0.7) !important;
     border-color: rgba(255, 255, 255, 0.1);

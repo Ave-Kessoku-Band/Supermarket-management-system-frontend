@@ -129,7 +129,7 @@ const onPageChange = (newPage: number) => {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+.v-theme--dark {
   .pagination-container {
     background: rgba(30, 30, 30, 0.7);
     border-color: rgba(255, 255, 255, 0.1);

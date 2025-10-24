@@ -358,7 +358,7 @@ const onSubmit = async () => {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+.v-theme--dark {
   .auth-bg {
     background:
       radial-gradient(600px 400px at 80% 20%, rgba(98, 91, 113, 0.25), transparent 60%),

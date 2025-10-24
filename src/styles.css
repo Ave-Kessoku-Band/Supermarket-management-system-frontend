@@ -5,6 +5,31 @@
   font-family: 'Roboto', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
 }
 
+/* Completely Hide Native Scrollbar */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+::-webkit-scrollbar-track {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  display: none;
+}
+
+/* Firefox - hide scrollbar */
+* {
+  scrollbar-width: none;
+}
+
+/* IE and Edge - hide scrollbar */
+* {
+  -ms-overflow-style: none;
+}
+
 /* Global Background with subtle gradient */
 body {
   background: linear-gradient(180deg, 
@@ -238,26 +263,24 @@ html {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  html,
-  body {
-    background: linear-gradient(180deg, 
-      rgba(102, 126, 234, 0.08) 0%, 
-      rgba(118, 75, 162, 0.05) 50%,
-      #121212 100%);
-    background-attachment: fixed;
-  }
-  
-  .glass {
-    background: rgba(30, 30, 30, 0.7) !important;
-    border-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(40px) saturate(150%);
-    -webkit-backdrop-filter: blur(40px) saturate(150%);
-  }
-  
-  .material-card {
-    background: rgba(30, 30, 30, 0.7) !important;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
+.v-theme--dark html,
+.v-theme--dark body {
+  background: linear-gradient(180deg, 
+    rgba(102, 126, 234, 0.08) 0%, 
+    rgba(118, 75, 162, 0.05) 50%,
+    #121212 100%);
+  background-attachment: fixed;
+}
+
+.v-theme--dark .glass {
+  background: rgba(30, 30, 30, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+}
+
+.v-theme--dark .material-card {
+  background: rgba(30, 30, 30, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 

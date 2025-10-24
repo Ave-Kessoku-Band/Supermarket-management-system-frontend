@@ -1,8 +1,15 @@
 <template>
   <div class="products-page">
-    <!-- Filter Dialog -->
-    <v-dialog v-model="filterDialog" max-width="500">
-      <v-card class="glass-dialog">
+    <!-- Filter Menu -->
+    <v-menu
+      v-model="filterDialog"
+      :target="filterButtonPosition"
+      location="bottom end"
+      :close-on-content-click="false"
+      offset="8"
+      max-width="400"
+    >
+      <v-card class="filter-card">
         <v-card-title class="d-flex align-center pa-4">
           <v-icon class="mr-2">mdi-filter-variant</v-icon>
           筛选商品
@@ -11,6 +18,7 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
+        <v-divider></v-divider>
         <v-card-text class="pa-4">
           <v-select
             v-model="stockStatus"
@@ -28,7 +36,7 @@
           <v-btn color="primary" variant="elevated" @click="applyFilters">应用</v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </v-menu>
 
     <!-- Loading State -->
     <div v-if="products.length === 0 && loading" class="text-center py-8">
@@ -108,6 +116,7 @@ const page = ref(1)
 const per_page = ref(12)
 const loading = ref(false)
 const filterDialog = ref(false)
+const filterButtonPosition = ref<[number, number]>([0, 0])
 
 const products = ref<any[]>([])
 const meta = ref<any | null>(null)
@@ -174,8 +183,26 @@ const handleNavbarSearch = (e: CustomEvent) => {
 
 // 监听导航栏筛选事件
 const handleNavbarFilter = () => {
+  // 计算筛选按钮位置
+  const navBar = document.querySelector('.v-app-bar')
+  if (navBar) {
+    const rect = navBar.getBoundingClientRect()
+    // 将菜单定位在导航栏右侧下方
+    filterButtonPosition.value = [rect.right - 20, rect.bottom + 8]
+  }
   filterDialog.value = true
 }
+
+// 监听筛选菜单状态变化
+watch(filterDialog, (newVal) => {
+  if (newVal) {
+    // 打开筛选菜单
+    window.dispatchEvent(new CustomEvent('filter-menu-open'))
+  } else {
+    // 关闭筛选菜单
+    window.dispatchEvent(new CustomEvent('filter-menu-close'))
+  }
+})
 
 // 监听URL查询参数
 watch(() => route.query.search, (newSearch) => {
@@ -188,21 +215,24 @@ watch(() => route.query.search, (newSearch) => {
 
 watch(page, fetch)
 
+// 监听来自 NavBar 的关闭事件（点击遮罩）
 onMounted(() => {
+  window.addEventListener('close-filter-menu', () => {
+    filterDialog.value = false
+  })
+  window.addEventListener('navbar-filter', handleNavbarFilter as EventListener)
+  window.addEventListener('navbar-search', handleNavbarSearch as EventListener)
+  
   // 如果URL没有搜索参数，正常加载
   if (!route.query.search) {
     fetch()
   }
-  // 添加事件监听
-  window.addEventListener('navbar-search', handleNavbarSearch as EventListener)
-  window.addEventListener('navbar-filter', handleNavbarFilter as EventListener)
 })
 </script>
 
 <style scoped>
 .products-page {
   position: relative;
-  min-height: calc(100vh - 64px);
   padding: 24px 0;
   margin: 0 -16px;
   padding-left: 16px;
@@ -225,7 +255,8 @@ onMounted(() => {
 }
 
 /* Glass Dialog */
-.glass-dialog {
+.glass-dialog,
+.filter-card {
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   background: rgba(255, 255, 255, 0.95) !important;
@@ -284,7 +315,7 @@ onMounted(() => {
 }
 
 /* Dark mode support with enhanced blur */
-@media (prefers-color-scheme: dark) {
+.v-theme--dark {
   .products-page::before {
     background: linear-gradient(180deg, 
       rgba(102, 126, 234, 0.08) 0%, 
@@ -292,7 +323,8 @@ onMounted(() => {
       transparent 100%);
   }
   
-  .glass-dialog {
+  .glass-dialog,
+  .filter-card {
     background: rgba(30, 30, 30, 0.95) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.15);
   }
@@ -308,5 +340,18 @@ onMounted(() => {
   .glass-dialog :deep(.v-field--focused) {
     background: rgba(60, 60, 60, 0.8) !important;
   }
+}
+
+.filter-card {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
+
+.v-theme--dark .filter-card {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 </style>
