@@ -301,7 +301,7 @@ onMounted(() => {
   position: absolute;
   background: transparent;
   z-index: 1000;
-  border-radius: 12px;
+  border-radius: 16px;
   transition: background 0.2s ease;
   pointer-events: auto;
 }

@@ -174,7 +174,7 @@ const onSubmit = async () => {
   margin: 0 auto;
   max-height: 90vh;
   overflow-y: auto;
-  border-radius: 32px;
+  border-radius: 16px;
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   background: rgba(255, 255, 255, 0.8);
@@ -207,7 +207,7 @@ const onSubmit = async () => {
 @media (max-width: 600px) {
   .auth-card {
     margin: 16px;
-    border-radius: 24px;
+    border-radius: 16px;
     min-height: auto;
   }
 
@@ -240,6 +240,6 @@ const onSubmit = async () => {
 }
 
 .turnstile-wrapper :deep(iframe) {
-  border-radius: 12px;
+  border-radius: 16px;
 }
 </style>

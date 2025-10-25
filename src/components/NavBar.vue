@@ -429,7 +429,7 @@ onMounted(() => {
 }
 
 .search-bar :deep(.v-field) {
-  border-radius: 28px;
+  border-radius: 16px;
   background: rgba(var(--v-theme-surface-variant), 0.5);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

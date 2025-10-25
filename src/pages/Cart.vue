@@ -229,6 +229,6 @@ const checkout = async () => {
 }
 
 .v-avatar {
-  border-radius: 12px !important;
+  border-radius: 16px !important;
 }
 </style>

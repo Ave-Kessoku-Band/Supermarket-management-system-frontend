@@ -43,7 +43,7 @@
     <transition name="toast-slide">
       <div v-if="ui.loginTipVisible" class="login-tip-toast">
         <v-card class="toast-card" :elevation="6">
-          <v-card-text class="pa-4">
+          <v-card-text class="pa-2">
             <div class="toast-content">
               <v-icon color="primary" class="toast-icon" size="20">
                 mdi-information-outline
@@ -108,7 +108,7 @@ const hideToast = () => {
 
 /* Material Design 3 Toast Styling */
 :deep(.material-toast .v-snackbar__wrapper) {
-  border-radius: 12px !important;
+  border-radius: 16px !important;
   backdrop-filter: blur(8px) saturate(180%);
   -webkit-backdrop-filter: blur(8px) saturate(180%);
   min-width: auto !important;
@@ -143,8 +143,8 @@ const hideToast = () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  min-height: 48px;
+  padding: 8px 16px;
+  min-height: 40px;
   white-space: nowrap;
 }
 
@@ -176,7 +176,7 @@ const hideToast = () => {
 }
 
 .toast-card {
-  border-radius: 12px;
+  border-radius: 16px;
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   background: rgba(255, 255, 255, 0.9);
@@ -188,6 +188,8 @@ const hideToast = () => {
 
 .toast-card .toast-content {
   white-space: nowrap;
+  padding: 8px 16px;
+  min-height: 40px;
 }
 
 .toast-card .toast-message {
@@ -227,12 +229,13 @@ const hideToast = () => {
 @media (max-width: 600px) {
   :deep(.material-toast .v-snackbar__wrapper) {
     margin: 0 12px;
-    border-radius: 8px !important;
+    border-radius: 16px !important;
     max-width: calc(100vw - 24px) !important;
   }
 
   .toast-content {
-    padding: 10px 14px;
+    padding: 8px 14px;
+    min-height: 36px;
   }
 
   .toast-message {

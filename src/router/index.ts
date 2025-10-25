@@ -4,6 +4,7 @@ import { useUiStore } from '@/store/ui'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'products', component: () => import('@/pages/Products.vue') },
+  { path: '/products/:id', name: 'product-detail', component: () => import('@/pages/ProductDetail.vue') },
 
   // 登录 / 注册为独立页面，隐藏导航栏
   { path: '/login', name: 'login', component: () => import('@/pages/Login.vue'), meta: { public: true, hideNav: true } },

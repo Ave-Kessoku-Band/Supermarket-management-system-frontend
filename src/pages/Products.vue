@@ -61,17 +61,19 @@
     </div>
 
     <!-- Products Grid -->
-    <v-row v-else>
+    <v-row v-else no-gutters class="ma-n2">
       <v-col
         v-for="product in products"
         :key="product.id"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-        class="product-col"
+        cols="6"
+        sm="4"
+        md="3"
+        lg="2"
+        xl="2"
+        class="product-col pa-2"
       >
         <ProductCard
+          :id="product.id"
           :name="product.name"
           :category="product.category"
           :unit="product.unit"
@@ -85,22 +87,27 @@
       </v-col>
     </v-row>
 
-    <!-- Pagination -->
-    <div v-if="meta && meta.total_pages > 1" class="d-flex justify-center mt-8">
-      <Pagination
-        v-model:page="page"
-        :total-pages="meta.total_pages || 1"
-      />
+    <!-- Loading More Indicator -->
+    <div v-if="loadingMore" class="text-center py-8">
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="40"
+      ></v-progress-circular>
+    </div>
+
+    <!-- End of List -->
+    <div v-if="!hasMore && products.length > 0" class="text-center py-6 text-medium-emphasis body-small">
+      已加载全部商品
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiListProducts } from '@/api/endpoints'
 import ProductCard from '@/components/ProductCard.vue'
-import Pagination from '@/components/Pagination.vue'
 import { useAuthStore } from '@/store/auth'
 import { useCartStore } from '@/store/cart'
 import { useUiStore } from '@/store/ui'
@@ -113,13 +120,15 @@ const route = useRoute()
 const search = ref('')
 const stockStatus = ref<string>('')
 const page = ref(1)
-const per_page = ref(12)
+const per_page = ref(24)
 const loading = ref(false)
+const loadingMore = ref(false)
 const filterDialog = ref(false)
 const filterButtonPosition = ref<[number, number]>([0, 0])
 
 const products = ref<any[]>([])
 const meta = ref<any | null>(null)
+const hasMore = ref(true)
 
 const stockStatusOptions = [
   { title: '全部', value: '' },
@@ -128,8 +137,15 @@ const stockStatusOptions = [
   { title: '无库存', value: 'OUT' }
 ]
 
-const fetch = async () => {
-  loading.value = true
+const fetch = async (append = false) => {
+  if (append) {
+    loadingMore.value = true
+  } else {
+    loading.value = true
+    products.value = []
+    page.value = 1
+  }
+
   try {
     const data = await apiListProducts({
       search: search.value || undefined,
@@ -137,26 +153,51 @@ const fetch = async () => {
       page: page.value,
       per_page: per_page.value
     })
-    products.value = data.data || []
+    
+    if (append) {
+      products.value = [...products.value, ...(data.data || [])]
+    } else {
+      products.value = data.data || []
+    }
+    
     meta.value = data.meta || null
+    hasMore.value = page.value < (meta.value?.total_pages || 1)
   } catch (error) {
     console.error('Failed to fetch products:', error)
-    products.value = []
+    if (!append) {
+      products.value = []
+    }
   } finally {
     loading.value = false
+    loadingMore.value = false
+  }
+}
+
+const loadMore = () => {
+  if (loadingMore.value || !hasMore.value) return
+  page.value++
+  fetch(true)
+}
+
+const handleScroll = () => {
+  const scrollY = window.scrollY || window.pageYOffset
+  const windowHeight = window.innerHeight
+  const documentHeight = document.documentElement.scrollHeight
+  
+  // 当滚动到底部前200px时加载更多
+  if (scrollY + windowHeight >= documentHeight - 200) {
+    loadMore()
   }
 }
 
 const applyFilters = () => {
-  page.value = 1
-  fetch()
+  fetch(false)
   filterDialog.value = false
 }
 
 const clearFilters = () => {
   stockStatus.value = ''
-  page.value = 1
-  fetch()
+  fetch(false)
   filterDialog.value = false
 }
 
@@ -177,8 +218,7 @@ const onAddToCart = async (p: any) => {
 // 监听导航栏搜索事件
 const handleNavbarSearch = (e: CustomEvent) => {
   search.value = e.detail
-  page.value = 1
-  fetch()
+  fetch(false)
 }
 
 // 监听导航栏筛选事件
@@ -208,12 +248,9 @@ watch(filterDialog, (newVal) => {
 watch(() => route.query.search, (newSearch) => {
   if (newSearch && typeof newSearch === 'string') {
     search.value = newSearch
-    page.value = 1
-    fetch()
+    fetch(false)
   }
 }, { immediate: true })
-
-watch(page, fetch)
 
 // 监听来自 NavBar 的关闭事件（点击遮罩）
 onMounted(() => {
@@ -222,11 +259,18 @@ onMounted(() => {
   })
   window.addEventListener('navbar-filter', handleNavbarFilter as EventListener)
   window.addEventListener('navbar-search', handleNavbarSearch as EventListener)
+  window.addEventListener('scroll', handleScroll)
   
   // 如果URL没有搜索参数，正常加载
   if (!route.query.search) {
-    fetch()
+    fetch(false)
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('navbar-filter', handleNavbarFilter as EventListener)
+  window.removeEventListener('navbar-search', handleNavbarSearch as EventListener)
 })
 </script>
 

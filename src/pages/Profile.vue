@@ -220,7 +220,7 @@ onMounted(async () => {
 }
 
 .stat-item {
-  border-radius: 12px;
+  border-radius: 16px;
   background: rgba(var(--v-theme-surface-variant), 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -2,14 +2,14 @@
   <v-card
     class="product-card"
     elevation="3"
-    hover
     :class="{ 'product-card--disabled': disabled }"
+    @click="onCardClick"
   >
     <!-- Product Image -->
     <v-img
       :src="image || defaultImage"
       :alt="name"
-      aspect-ratio="1"
+      aspect-ratio="1.2"
       cover
       class="product-image"
     >
@@ -34,33 +34,31 @@
     </v-img>
 
     <!-- Product Info -->
-    <v-card-text class="pa-4">
+    <v-card-text class="pa-3">
       <div class="product-info">
         <!-- Category -->
-        <div class="body-small text-medium-emphasis mb-1">
+        <div class="category-tag mb-2">
           {{ category }}
         </div>
 
         <!-- Name -->
-        <h3 class="title-medium mb-2 text-truncate">
+        <h3 class="product-title mb-2">
           {{ name }}
         </h3>
 
         <!-- Stock Info -->
-        <div v-if="stock !== undefined" class="body-small text-medium-emphasis mb-3">
+        <div v-if="stock !== undefined" class="stock-info mb-3">
           <v-icon size="14" class="mr-1">
             mdi-package-variant-closed
           </v-icon>
-          库存: {{ stock }} {{ unit }}
+          <span>库存: {{ stock }} {{ unit }}</span>
         </div>
 
         <!-- Price and Action -->
-        <div class="d-flex align-center justify-space-between">
-          <div class="text-h6 text-primary font-weight-bold">
-            ¥{{ price?.toFixed(2) }}
-            <span v-if="unit" class="body-small text-medium-emphasis ml-1">
-              / {{ unit }}
-            </span>
+        <div class="d-flex align-center justify-space-between mt-auto">
+          <div class="price-wrapper">
+            <div class="price-main">¥{{ price?.toFixed(2) }}</div>
+            <div class="price-unit">/ {{ unit }}</div>
           </div>
 
           <v-btn
@@ -69,11 +67,10 @@
             color="primary"
             variant="elevated"
             size="small"
-            prepend-icon="mdi-cart-plus"
+            icon="mdi-cart-plus"
             @click="onAddToCart"
             class="add-to-cart-btn"
           >
-            {{ disabled ? '暂时缺货' : '加入' }}
           </v-btn>
         </div>
       </div>
@@ -86,8 +83,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
+  id?: string
   name: string
   category: string
   unit: string
@@ -102,6 +101,7 @@ const emit = defineEmits<{
   add: []
 }>()
 
+const router = useRouter()
 const loading = ref(false)
 
 // Default image placeholder
@@ -121,7 +121,9 @@ const statusColor = computed(() => {
 })
 
 // Add to cart handler
-const onAddToCart = async () => {
+const onAddToCart = async (event: Event) => {
+  event.stopPropagation() // 阻止事件冒泡，避免触发卡片点击
+  
   if (props.disabled || loading.value) return
 
   loading.value = true
@@ -133,12 +135,19 @@ const onAddToCart = async () => {
     loading.value = false
   }
 }
+
+// Card click handler
+const onCardClick = () => {
+  if (props.id) {
+    router.push({ name: 'product-detail', params: { id: props.id } })
+  }
+}
 </script>
 
 <style scoped>
 .product-card {
   position: relative;
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
   cursor: pointer;
@@ -147,9 +156,12 @@ const onAddToCart = async () => {
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.06),
     0 1px 2px rgba(0, 0, 0, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card::before {
@@ -169,13 +181,13 @@ const onAddToCart = async () => {
 }
 
 .product-card:hover {
-  transform: translateY(-12px) scale(1.03);
+  transform: translateY(-2px);
   box-shadow: 
-    0 24px 48px rgba(102, 126, 234, 0.2),
-    0 8px 16px rgba(102, 126, 234, 0.15),
+    0 6px 16px rgba(102, 126, 234, 0.12),
+    0 2px 6px rgba(102, 126, 234, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   border-color: rgba(102, 126, 234, 0.3);
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
 }
 
 .product-card:hover::before {
@@ -184,20 +196,24 @@ const onAddToCart = async () => {
 
 .product-card--disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: default;
   filter: saturate(0.7);
 }
 
 .product-card--disabled:hover {
   transform: none;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.06),
     0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .product-image {
   position: relative;
   overflow: hidden;
+}
+
+.product-image :deep(.v-img__img) {
+  display: block;
 }
 
 .product-image::after {
@@ -215,31 +231,86 @@ const onAddToCart = async () => {
 
 .product-stock-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 8px;
+  right: 8px;
   font-weight: 500;
+  font-size: 0.7rem;
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   z-index: 2;
+}
+
+.product-card :deep(.v-card-text) {
+  border-radius: 0 !important;
 }
 
 .product-info {
   position: relative;
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   z-index: 2;
 }
 
+.category-tag {
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.product-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--v-theme-on-surface));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6em;
+}
+
+.stock-info {
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-on-surface-variant));
+  display: flex;
+  align-items: center;
+}
+
+.price-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.price-main {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgb(var(--v-theme-primary));
+  line-height: 1;
+}
+
+.price-unit {
+  font-size: 0.7rem;
+  color: rgb(var(--v-theme-on-surface-variant));
+  line-height: 1;
+}
+
+.product-info > div:last-child {
+  margin-top: auto;
+}
+
 .add-to-cart-btn {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
 }
 
 .add-to-cart-btn:hover {
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
 }
 
 .product-ripple {
@@ -251,9 +322,9 @@ const onAddToCart = async () => {
   pointer-events: none;
 }
 
-/* Material Design 3 Elevation Transitions */
-.product-card:hover :deep(.v-card__overlay) {
-  opacity: 1;
+/* 移除 hover 时的遮罩效果 */
+.product-card :deep(.v-card__overlay) {
+  display: none;
 }
 
 /* Ensuring proper truncation for long names */
@@ -287,17 +358,26 @@ const onAddToCart = async () => {
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   .product-card {
-    border-radius: 20px;
+    border-radius: 16px;
+  }
+  
+  .product-title {
+    font-size: 0.9rem;
+    min-height: 2.4em;
+  }
+
+  .price-main {
+    font-size: 1.1rem;
   }
   
   .add-to-cart-btn {
-    font-size: 12px !important;
-    padding: 0 12px !important;
+    transform: scale(0.9);
   }
   
   .product-stock-badge {
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    right: 6px;
+    font-size: 0.65rem;
   }
 }
 </style>

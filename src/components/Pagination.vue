@@ -82,7 +82,7 @@ const onPageChange = (newPage: number) => {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.06),
@@ -91,7 +91,7 @@ const onPageChange = (newPage: number) => {
 
 /* Material Design 3 pagination styling */
 :deep(.v-pagination__item) {
-  border-radius: 12px;
+  border-radius: 16px;
   margin: 0 4px;
   transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
   backdrop-filter: blur(20px);
